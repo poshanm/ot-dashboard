@@ -4,40 +4,42 @@
 <head>
 
 <meta name="viewport"
-      content="width=device-width, initial-scale=1">
+content="width=device-width, initial-scale=1">
 
 <style>
 
-body {
-  font-family: Arial;
-  background:#0f172a;
-  color:white;
-  padding:10px;
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+padding:10px;
 }
 
-.card {
-
-  background:#1e293b;
-  padding:12px;
-  margin:10px 0;
-  border-radius:12px;
-
+.card{
+background:#1e293b;
+padding:12px;
+margin:10px 0;
+border-radius:12px;
 }
 
-button {
-
-  padding:10px;
-  margin:5px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-
+button{
+padding:10px;
+margin:5px;
+border:none;
+border-radius:8px;
+cursor:pointer;
 }
 
-.green { background:#22c55e; }
-.red   { background:#ef4444; }
-.blue  { background:#3b82f6; }
-.gray  { background:#475569; }
+.popup{
+display:none;
+position:fixed;
+top:20%;
+left:10%;
+width:80%;
+background:#1e293b;
+padding:15px;
+border-radius:12px;
+}
 
 </style>
 
@@ -45,18 +47,12 @@ button {
 
 <body>
 
-<h2>
-⚡ OT Dashboard
-</h2>
+<h2>⚡ OT Dashboard</h2>
 
 <div class="card">
 
-<button
-class="blue"
-onclick="load()">
-
+<button onclick="load()">
 🔄 Refresh
-
 </button>
 
 <pre id="ot">
@@ -67,229 +63,164 @@ Loading...
 
 <div class="card">
 
-<h3>Actions</h3>
-
-<button
-class="green"
-onclick="action('accept')">
-
+<button onclick="accept()">
 ✅ Accept
-
 </button>
 
-<button
-class="red"
-onclick="action('refuse')">
-
+<button onclick="action('refuse')">
 ❌ Refuse
-
 </button>
 
-<button
-class="gray"
-onclick="action('skip')">
-
-⏭️ Skip
-
+<button onclick="action('skip')">
+⏭ Skip
 </button>
 
-<br><br>
+<br>
 
-<button
-class="blue"
-onclick="today()">
-
-📅 Today Shift
-
-</button>
-
-<button
-class="blue"
-onclick="tomorrow()">
-
-📅 Tomorrow Shift
-
-</button>
-
-<button
-class="blue"
-onclick="leaveForm()">
-
-📝 Leave Entry
-
-</button>
-
-<button
-class="blue"
-onclick="mutualForm()">
-
-🤝 Mutual Entry
-
-</button>
-
-<button
-class="blue"
-onclick="history()">
-
+<button onclick="openHistory()">
 📊 OT History
+</button>
 
+</div>
+
+<!-- HISTORY -->
+
+<div id="historyPopup"
+class="popup">
+
+<h3>OT History</h3>
+
+<pre id="historyData">
+Loading...
+</pre>
+
+<button onclick="closeHistory()">
+Close
 </button>
 
 </div>
 
 <script>
 
-const API =
+const API=
 "https://script.google.com/macros/s/AKfycbwq11zVwDaZC1ddWjpUJxtW5S6Kpx4Xxgt0pYMTNI5zwAVoWqWqujDt1gtSnztbCgeyXQ/exec";
 
-// LOAD OT
 async function load(){
 
-let ot =
+let ot=
 await fetch(
-API + "?action=getOT"
+API+"?action=getOT"
 ).then(r=>r.text());
 
 document
 .getElementById("ot")
-.innerText = ot;
+.innerText=ot;
 
 }
 
-// ACTION BUTTON
-async function action(type) {
 
-  if (type === "accept") {
+// ACCEPT popup
 
-    // NEXT EMPLOYEE INFO fetch
-    let info =
-      await fetch(
-        API +
-        "?action=getNextInfo"
-      )
-      .then(r => r.json());
+async function accept(){
 
-    if (!info.name) {
-
-      alert(
-        "No employee available"
-      );
-
-      return;
-
-    }
-
-    let msg =
-
-      "✅ OT Accept Confirm?\n" +
-      "─────────────────────\n" +
-
-      "👤 Employee  : " +
-      info.name + "\n" +
-
-      "🕐 Aaj Shift : " +
-      info.todayShift + "\n" +
-
-      "⚡ OT Shift  : " +
-      info.otShift +
-
-      (info.isTomorrow ?
-       " (Kal)" : "") +
-
-      "\n📅 OT Date   : " +
-      info.otDate +
-
-      "\n─────────────────────\n" +
-
-      "Confirm karo?";
-
-    let ok = confirm(msg);
-
-    if (!ok) return;
-
-  }
-
-  if (type === "refuse") {
-
-    let ok =
-      confirm("❌ Refuse Confirm?");
-
-    if (!ok) return;
-
-  }
-
-  if (type === "skip") {
-
-    let ok =
-      confirm("⏭️ Skip Confirm?");
-
-    if (!ok) return;
-
-  }
-
-  // API CALL
-  fetch(
-    API +
-    "?action=" +
-    type
-  );
-
-  setTimeout(load,1000);
-
-}
-// TODAY SHIFT
-async function today(){
-
-let data =
+let info=
 await fetch(
-API + "?action=getToday"
-).then(r=>r.text());
+API+"?action=getNext"
+).then(r=>r.json());
 
-alert(data);
+let msg=
+
+"✅ OT Accept Confirm?\n\n"+
+
+"👤 "+info.name+"\n"+
+
+"🕐 "+info.todayShift+"\n"+
+
+"⚡ "+info.otShift+"\n"+
+
+"📅 "+info.otDate;
+
+if(!confirm(msg))
+return;
+
+fetch(
+API+"?action=accept"
+);
+
+setTimeout(load,1000);
 
 }
 
-// TOMORROW SHIFT
-async function tomorrow(){
 
-let data =
+// REFUSE / SKIP
+
+function action(type){
+
+let ok=
+confirm(type+" confirm?");
+
+if(!ok) return;
+
+fetch(
+API+"?action="+type
+);
+
+setTimeout(load,1000);
+
+}
+
+
+// HISTORY
+
+async function openHistory(){
+
+document
+.getElementById(
+"historyPopup"
+).style.display="block";
+
+let data=
 await fetch(
-API + "?action=getTomorrow"
-).then(r=>r.text());
+API+"?action=history"
+).then(r=>r.json());
 
-alert(data);
+let txt="";
 
-}
+data.forEach(r=>{
 
-// PLACEHOLDERS
-function leaveForm(){
+txt+=
 
-alert(
-"Open Leave Form"
-);
+r.date+
+"  "+
+r.name+
+"  "+
+r.shift+
+"\n";
 
-}
+});
 
-function mutualForm(){
-
-alert(
-"Open Mutual Form"
-);
-
-}
-
-function history(){
-
-alert(
-"Show OT History"
-);
+document
+.getElementById(
+"historyData"
+).innerText=txt;
 
 }
 
-// AUTO LOAD
+function closeHistory(){
+
+document
+.getElementById(
+"historyPopup"
+).style.display="none";
+
+}
+
 load();
 
 </script>
 
+</body>
+
+</html>
 </body>
 </html>
