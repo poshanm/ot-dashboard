@@ -159,49 +159,84 @@ document
 // ACTION BUTTON
 async function action(type) {
 
-  // Accept confirmation
   if (type === "accept") {
 
-    let ok = confirm(
-      "✅ OT Assign Confirm?\n\n" +
-      "Kya OT assign karna hai?"
-    );
+    // NEXT EMPLOYEE INFO fetch
+    let info =
+      await fetch(
+        API +
+        "?action=getNextInfo"
+      )
+      .then(r => r.json());
+
+    if (!info.name) {
+
+      alert(
+        "No employee available"
+      );
+
+      return;
+
+    }
+
+    let msg =
+
+      "✅ OT Accept Confirm?\n" +
+      "─────────────────────\n" +
+
+      "👤 Employee  : " +
+      info.name + "\n" +
+
+      "🕐 Aaj Shift : " +
+      info.todayShift + "\n" +
+
+      "⚡ OT Shift  : " +
+      info.otShift +
+
+      (info.isTomorrow ?
+       " (Kal)" : "") +
+
+      "\n📅 OT Date   : " +
+      info.otDate +
+
+      "\n─────────────────────\n" +
+
+      "Confirm karo?";
+
+    let ok = confirm(msg);
 
     if (!ok) return;
 
   }
 
-  // Refuse confirmation
   if (type === "refuse") {
 
-    let ok = confirm(
-      "❌ Refuse Confirm?"
-    );
+    let ok =
+      confirm("❌ Refuse Confirm?");
 
     if (!ok) return;
 
   }
 
-  // Skip confirmation
   if (type === "skip") {
 
-    let ok = confirm(
-      "⏭️ Skip Confirm?"
-    );
+    let ok =
+      confirm("⏭️ Skip Confirm?");
 
     if (!ok) return;
 
   }
 
-  // API call
+  // API CALL
   fetch(
-    API + "?action=" + type
+    API +
+    "?action=" +
+    type
   );
 
   setTimeout(load,1000);
 
 }
-
 // TODAY SHIFT
 async function today(){
 
