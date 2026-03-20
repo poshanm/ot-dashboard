@@ -157,13 +157,48 @@ document
 }
 
 // ACTION BUTTON
-function action(type){
+async function action(type) {
 
-fetch(
-API + "?action=" + type
-);
+  // Accept confirmation
+  if (type === "accept") {
 
-setTimeout(load,1000);
+    let ok = confirm(
+      "✅ OT Assign Confirm?\n\n" +
+      "Kya OT assign karna hai?"
+    );
+
+    if (!ok) return;
+
+  }
+
+  // Refuse confirmation
+  if (type === "refuse") {
+
+    let ok = confirm(
+      "❌ Refuse Confirm?"
+    );
+
+    if (!ok) return;
+
+  }
+
+  // Skip confirmation
+  if (type === "skip") {
+
+    let ok = confirm(
+      "⏭️ Skip Confirm?"
+    );
+
+    if (!ok) return;
+
+  }
+
+  // API call
+  fetch(
+    API + "?action=" + type
+  );
+
+  setTimeout(load,1000);
 
 }
 
