@@ -195,6 +195,36 @@ Cancel
 
 const API="https://script.google.com/macros/s/AKfycbzz0j_a8dfVA9r_d1pYkwXTtyBFOIvWMw6Sb6M9wXoVYThp_WSUWKThOI8Sk7MDF8okKQ/exec";
 
+  async function accept(){
+
+let info =
+await fetch(
+API+"?action=getNext"
+).then(r=>r.json());
+
+let msg =
+
+"✅ OT Accept Confirm?\n\n"+
+
+"👤 "+info.name+"\n"+
+
+"🕐 "+info.todayShift+"\n"+
+
+"⚡ "+info.otShift+"\n"+
+
+"📅 "+info.otDate;
+
+if(!confirm(msg))
+return;
+
+fetch(
+API+"?action=accept"
+);
+
+setTimeout(load,1000);
+
+}
+
 async function load(){
 
 let ot=
