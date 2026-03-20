@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body { font-family: Arial; background:#0f172a; color:white; padding:10px; }
+.card { background:#1e293b; padding:12px; margin:10px 0; border-radius:12px; }
+.tabs { display:flex; gap:10px; margin-bottom:10px; }
+.tab { padding:10px; background:#334155; border-radius:8px; cursor:pointer; }
+.active { background:#22c55e; }
+
+.dropzone {
+  border:2px dashed #22c55e;
+  padding:20px;
+  width:120px;
+  text-align:center;
+  border-radius:10px;
+  background:#1e293b;
+}
+
+.draggable {
+  background:#475569;
+  padding:8px;
+  margin:5px;
+  cursor:grab;
+  border-radius:6px;
+}
+
+.flex { display:flex; gap:10px; }
+</style>
+</head>
+
+<body>
+
+<h2>⚡ OT GOD MODE Dashboard</h2>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('dashboard', this)">Dashboard</div>
+  <div class="tab" onclick="showTab('drag', this)">Drag Assign</div>
+  <div class="tab" onclick="showTab('ai', this)">Prediction</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="card">
+  <button onclick="load()">🔄 Refresh</button>
+  <pre id="ot">Loading...</pre>
+</div>
+
+<!-- DRAG SECTION -->
+<div id="drag" class="card" style="display:none">
+  <h3>🎯 Drag & Drop OT Assign</h3>
+
+  <div id="emps"></div>
+
+  <div class="flex">
+    <div class="dropzone" ondrop="drop(event,'1st')" ondragover="allowDrop(event)">🔵 1st</div>
+    <div class="dropzone" ondrop="drop(event,'2nd')" ondragover="allowDrop(event)">🟢 2nd</div>
+    <div class="dropzone" ondrop="drop(event,'3rd')" ondragover="allowDrop(event)">🟠 3rd</div>
+  </div>
+
+  <br>
+
+  <button onclick="action('accept')">Accept</button>
+  <button onclick="action('refuse')">Refuse</button>
+  <button onclick="action('skip')">Skip</button>
+</div>
+
+<!-- AI PREDICTION -->
+<div id="ai" class="card" style="display:none">
+  <h3>🔮 Prediction</h3>
+  <canvas id="chart"></canvas>
+</div>
+
+<script>
+
+const API = "https://script.google.com/macros/s/AKfycbyOkXjI6BcEf-DbbPSoSzNv5TdlB9c_Tjj_olIrGEqXtwxbP3UTh4oShpEEUs4SyYKWGQ/exec";
+
+async function load() {
+  try {
+    // OT STATUS
+    let ot = await fetch(API + "?action=getOT").then(r=>r.text());
+    document.getElementById("ot").innerText = ot;
+
+    // EMPLOYEES
+    let emp = await fetch(API + "?action=getEmployees").then(r=>r.json());
+    let html = "";
+
+    emp.forEach(e => {
+      html += `<div class="draggable" draggable="true" ondragstart="drag(event)" id="${e}">${e}</div>`;
+    });
+
+    document.getElementById("emps").innerHTML = html;
+
+    // PREDICTION
+    let data = await fetch(API + "?action=prediction").then(r=>r.json());
+    drawChart(data);
+
+  } catch (e) {
+    document.getElementById("ot").innerText = "⚠️ API Error";
+  }
+}
+
+// DRAG FUNCTIONS
+function drag(ev) {
+  ev.dataTransfer.setData("text", ev.target.id);
+}
+
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drop(ev, shift) {
+  ev.preventDefault();
+
+  let name = ev.dataTransfer.getData("text");
+
+  fetch(API + `?action=manual&name=${name}&shift=${shift}`);
+
+  alert(name + " → " + shift + " assigned");
+
+  setTimeout(load, 1000);
+}
+
+// ACTION BUTTONS
+function action(type) {
+  fetch(API + `?action=${type}`);
+  setTimeout(load, 1000);
+}
+
+// TABS
+function showTab(id, el) {
+  document.querySelectorAll('.card').forEach(c => c.style.display = 'none');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+  document.getElementById(id).style.display = 'block';
+  el.classList.add('active');
+}
+
+// CHART
+let chart;
+function drawChart(data) {
+  if (chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("chart"), {
+    type: "bar",
+    data: {
+      labels: data.labels,
+      datasets: [{ label: "Prediction", data: data.values }]
+    }
+  });
+}
+
+// AUTO LOAD
+load();
+
+</script>
+
+</body>
+</html>
