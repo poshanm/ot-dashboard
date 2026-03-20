@@ -69,8 +69,23 @@ body { font-family: Arial; background:#0f172a; color:white; padding:10px; }
 
 <!-- AI PREDICTION -->
 <div id="ai" class="card" style="display:none">
+
   <h3>🔮 Prediction</h3>
   <canvas id="chart"></canvas>
+
+  <!-- ADD HERE -->
+  <h3>📊 Employee Ranking</h3>
+
+  <div id="ranking"
+       style="
+         background:#0f172a;
+         padding:10px;
+         border-radius:8px;
+         margin-top:10px;
+       ">
+  Loading ranking...
+  </div>
+
 </div>
 
 <script>
@@ -154,7 +169,60 @@ function drawChart(data) {
 
 // AUTO LOAD
 load();
+async function load() {
 
+  try {
+
+    // OT STATUS
+    let ot =
+      await fetch(API + "?action=getOT")
+      .then(r => r.text());
+
+    document.getElementById("ot").innerText = ot;
+
+    // EMPLOYEES
+    let emp =
+      await fetch(API + "?action=getEmployees")
+      .then(r => r.json());
+
+    let html = "";
+
+    emp.forEach(e => {
+
+      html += `
+      <div class="draggable"
+           draggable="true"
+           ondragstart="drag(event)"
+           id="${e}">
+        ${e}
+      </div>
+      `;
+
+    });
+
+    document.getElementById("emps").innerHTML = html;
+
+    // PREDICTION
+    let data =
+      await fetch(API + "?action=prediction")
+      .then(r => r.json());
+
+    drawChart(data);
+
+    // ADD THIS
+    loadRanking();
+
+  }
+
+  catch (e) {
+
+    document.getElementById("ot").innerText =
+      "⚠️ API Error";
+
+  }
+
+}
+  
 </script>
 
 </body>
