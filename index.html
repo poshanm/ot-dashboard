@@ -33,9 +33,9 @@ cursor:pointer;
 .popup{
 display:none;
 position:fixed;
-top:20%;
-left:10%;
-width:80%;
+top:10%;
+left:5%;
+width:90%;
 background:#1e293b;
 padding:15px;
 border-radius:12px;
@@ -77,33 +77,123 @@ Loading...
 
 <br>
 
-<button onclick="openHistory()">
+<button onclick="todayPopup()">
+📅 Today Shift
+</button>
+
+<button onclick="tomorrowPopup()">
+📆 Tomorrow Shift
+</button>
+
+<button onclick="historyPopup()">
 📊 OT History
+</button>
+
+<br>
+
+<button onclick="openLeave()">
+📝 Leave
+</button>
+
+<button onclick="openMutual()">
+🔄 Mutual
 </button>
 
 </div>
 
-<!-- HISTORY -->
 
-<div id="historyPopup"
+<!-- COMMON POPUP -->
+
+<div id="popup"
 class="popup">
 
-<h3>OT History</h3>
-
-<pre id="historyData">
+<pre id="popupText">
 Loading...
 </pre>
 
-<button onclick="closeHistory()">
+<button onclick="closePopup()">
 Close
 </button>
 
 </div>
 
+
+<!-- LEAVE FORM -->
+
+<div id="leaveForm"
+class="popup">
+
+<h3>Leave Entry</h3>
+
+<input id="leaveName"
+placeholder="Employee">
+
+<br><br>
+
+<input type="date"
+id="leaveFrom">
+
+<br><br>
+
+<input type="date"
+id="leaveTo">
+
+<br><br>
+
+<input id="leaveReason"
+placeholder="Reason">
+
+<br><br>
+
+<button onclick="submitLeave()">
+Submit
+</button>
+
+<button onclick="closeLeave()">
+Cancel
+</button>
+
+</div>
+
+
+
+<!-- MUTUAL FORM -->
+
+<div id="mutualForm"
+class="popup">
+
+<h3>Mutual Entry</h3>
+
+<input id="emp1"
+placeholder="Employee 1">
+
+<br><br>
+
+<input id="emp2"
+placeholder="Employee 2">
+
+<br><br>
+
+<input type="date"
+id="mutualDate">
+
+<br><br>
+
+<button onclick="submitMutual()">
+Submit
+</button>
+
+<button onclick="closeMutual()">
+Cancel
+</button>
+
+</div>
+
+
+
 <script>
 
-const API=
-"https://script.google.com/macros/s/AKfycbwSIBUgRZSAM-mLLJqfpKrIoJNX1Dz1fSi0LGSqJIBCYon4rmNtqfK2eMG56ViJQ0X_CA/exec";
+const API="https://script.google.com/macros/s/AKfycbwSIBUgRZSAM-mLLJqfpKrIoJNX1Dz1fSi0LGSqJIBCYon4rmNtqfK2eMG56ViJQ0X_CA/exec";
 
 async function load(){
 
@@ -119,101 +209,172 @@ document
 }
 
 
-// ACCEPT popup
+// TODAY
 
-async function accept(){
+async function todayPopup(){
 
-let info=
+let txt=
 await fetch(
-API+"?action=getNext"
-).then(r=>r.json());
+API+"?action=todayWeb"
+).then(r=>r.text());
 
-let msg=
-
-"✅ OT Accept Confirm?\n\n"+
-
-"👤 "+info.name+"\n"+
-
-"🕐 "+info.todayShift+"\n"+
-
-"⚡ "+info.otShift+"\n"+
-
-"📅 "+info.otDate;
-
-if(!confirm(msg))
-return;
-
-fetch(
-API+"?action=accept"
-);
-
-setTimeout(load,1000);
+showPopup(txt);
 
 }
 
 
-// REFUSE / SKIP
+// TOMORROW
 
-function action(type){
+async function tomorrowPopup(){
 
-let ok=
-confirm(type+" confirm?");
+let txt=
+await fetch(
+API+"?action=tomorrowWeb"
+).then(r=>r.text());
 
-if(!ok) return;
-
-fetch(
-API+"?action="+type
-);
-
-setTimeout(load,1000);
+showPopup(txt);
 
 }
 
 
 // HISTORY
 
-async function openHistory(){
+async function historyPopup(){
 
-document
-.getElementById(
-"historyPopup"
-).style.display="block";
-
-let data=
+let txt=
 await fetch(
-API+"?action=history"
-).then(r=>r.json());
+API+"?action=historyWeb"
+).then(r=>r.text());
 
-let txt="";
-
-data.forEach(r=>{
-
-txt+=
-
-r.date+
-"  "+
-r.name+
-"  "+
-r.shift+
-"\n";
-
-});
-
-document
-.getElementById(
-"historyData"
-).innerText=txt;
+showPopup(txt);
 
 }
 
-function closeHistory(){
+
+// SHOW POPUP
+
+function showPopup(text){
 
 document
 .getElementById(
-"historyPopup"
+"popup"
+).style.display="block";
+
+document
+.getElementById(
+"popupText"
+).innerText=text;
+
+}
+
+function closePopup(){
+
+document
+.getElementById(
+"popup"
 ).style.display="none";
 
 }
+
+
+// LEAVE
+
+function openLeave(){
+
+document
+.getElementById(
+"leaveForm"
+).style.display="block";
+
+}
+
+function closeLeave(){
+
+document
+.getElementById(
+"leaveForm"
+).style.display="none";
+
+}
+
+function submitLeave(){
+
+fetch(
+
+API+
+
+"?action=leaveWeb"+
+
+"&name="+
+document
+.getElementById("leaveName").value+
+
+"&from="+
+document
+.getElementById("leaveFrom").value+
+
+"&to="+
+document
+.getElementById("leaveTo").value+
+
+"&reason="+
+document
+.getElementById("leaveReason").value
+
+);
+
+alert("Leave Submitted");
+
+closeLeave();
+
+}
+
+
+// MUTUAL
+
+function openMutual(){
+
+document
+.getElementById(
+"mutualForm"
+).style.display="block";
+
+}
+
+function closeMutual(){
+
+document
+.getElementById(
+"mutualForm"
+).style.display="none";
+
+}
+
+function submitMutual(){
+
+fetch(
+
+API+
+
+"?action=mutualWeb"+
+
+"&emp1="+
+document.getElementById("emp1").value+
+
+"&emp2="+
+document.getElementById("emp2").value+
+
+"&date="+
+document.getElementById("mutualDate").value
+
+);
+
+alert("Mutual Submitted");
+
+closeMutual();
+
+}
+
 
 load();
 
@@ -221,6 +382,4 @@ load();
 
 </body>
 
-</html>
-</body>
 </html>
